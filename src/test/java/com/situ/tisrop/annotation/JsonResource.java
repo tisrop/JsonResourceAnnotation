@@ -17,4 +17,6 @@ public @interface JsonResource {
     String[] resources();
 
     String encoding() default "UTF-8";
+
+    Class<?> type() default String.class;
 }

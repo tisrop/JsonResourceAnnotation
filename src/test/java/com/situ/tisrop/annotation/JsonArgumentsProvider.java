@@ -15,10 +15,11 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<JsonResource> {
-    private   BiFunction<Class<?>, String, InputStream> inputStreamProvider;
+    private BiFunction<Class<?>, String, InputStream> inputStreamProvider;
     private JsonResource annotation;
     private String[] resources;
     private Charset charset;
+    private Class<?> clazz;
 
     JsonArgumentsProvider() {
         this(Class::getResourceAsStream);
@@ -32,6 +33,7 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
     public void accept(JsonResource annotation) {
         this.annotation = annotation;
         this.resources = annotation.resources();
+        this.clazz = annotation.type();
         try {
             this.charset = Charset.forName(annotation.encoding());
         } catch (Exception var3) {
@@ -58,6 +60,6 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
     }
 
     private Stream<Arguments> toStream(InputStream inputStream) {
-        return Stream.of(Arguments.of(JSONObject.parse(readSource(inputStream))));
+        return Stream.of(Arguments.of(JSONObject.parseObject(readSource(inputStream), this.clazz)));
     }
 }
