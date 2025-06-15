@@ -1,17 +1,17 @@
 package com.situ.tisrop;
 
-import com.alibaba.fastjson.JSONObject;
 import com.situ.tisrop.annotation.JsonResource;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 
 class AnnotationTests {
 
 
     @ParameterizedTest
-    @JsonResource(resources = "/import.json")
-    void contextLoads(JSONObject jsonObject) {
-        Assert.assertEquals(jsonObject.toJSONString(), "{\"name\":\"xiaoming\",\"age\":\"23\"}");
+    @JsonResource(resources = "/import.json", type = User.class)
+    void contextLoads(User user) {
+        Assertions.assertEquals(user.getName(), "xiaoming");
+        Assertions.assertEquals(user.getAge(), 23);
     }
 
 }
