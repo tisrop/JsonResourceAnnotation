@@ -1,6 +1,6 @@
 package com.situ.tisrop.annotation;
 
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
@@ -60,6 +60,12 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
     }
 
     private Stream<Arguments> toStream(InputStream inputStream) {
-        return Stream.of(Arguments.of(JSONObject.parseObject(readSource(inputStream), this.clazz)));
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Object obj = objectMapper.readValue(readSource(inputStream), this.clazz);
+            return Stream.of(Arguments.of(obj));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse JSON string", e);
+        }
     }
 }
