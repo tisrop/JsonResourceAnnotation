@@ -15,7 +15,7 @@
     <description>an annotation for json resource import</description>
     <properties>
         <java.version>17</java.version>
-        <fastjson.vsersion>1.2.83</fastjson.vsersion>
+        <jackson.vsersion>2.15.3</jackson.vsersion>
     </properties>
     <dependencies>
         <dependency>
@@ -28,9 +28,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.vsersion}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.vsersion}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -45,6 +45,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration></plugin>
         </plugins>
     </build>
 </project>
