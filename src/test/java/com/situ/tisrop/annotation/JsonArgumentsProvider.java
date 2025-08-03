@@ -54,7 +54,7 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
 
     public String readSource(InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, this.charset));
         bufferedReader.lines().forEach(e -> sb.append(e).append(System.lineSeparator()));
         return sb.toString();
     }
