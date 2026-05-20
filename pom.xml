@@ -15,7 +15,7 @@
     <description>an annotation for json resource import</description>
     <properties>
         <java.version>17</java.version>
-        <jackson.vsersion>2.15.3</jackson.vsersion>
+        <jackson.version>2.15.3</jackson.version>
     </properties>
     <dependencies>
         <dependency>
@@ -30,7 +30,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.vsersion}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
