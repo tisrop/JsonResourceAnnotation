@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Documented
 @API(
         status = API.Status.EXPERIMENTAL,
-        since = "5.0"
+        since = "1.0"
 )
 @ArgumentsSource(JsonArgumentsProvider.class)
 public @interface JsonResource {
@@ -19,4 +19,10 @@ public @interface JsonResource {
     String encoding() default "UTF-8";
 
     Class<?> type() default String.class;
+
+    String jsonPath() default "";
+
+    boolean fileSystem() default false;
+
+    Class<? extends ObjectMapperFactory> mapperFactory() default DefaultObjectMapperFactory.class;
 }
