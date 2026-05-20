@@ -46,8 +46,11 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
         this.clazz = annotation.type();
         try {
             this.charset = Charset.forName(annotation.encoding());
-        } catch (Exception var3) {
-            throw new PreconditionViolationException("The charset supplied in " + annotation + " is invalid", var3);
+        } catch (Exception ex) {
+            throw new PreconditionViolationException(
+                    String.format("The charset '%s' supplied in %s is invalid", annotation.encoding(), annotation),
+                    ex
+            );
         }
     }
 
@@ -64,8 +67,11 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
 
     public String readSource(InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, this.charset));
-        bufferedReader.lines().forEach(e -> sb.append(e).append(System.lineSeparator()));
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, this.charset))) {
+            bufferedReader.lines().forEach(e -> sb.append(e).append(System.lineSeparator()));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read input stream", e);
+        }
         return sb.toString();
     }
 
