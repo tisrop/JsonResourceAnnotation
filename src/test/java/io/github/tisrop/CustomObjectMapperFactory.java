@@ -1,8 +1,8 @@
-package com.situ.tisrop;
+package io.github.tisrop;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.situ.tisrop.annotation.ObjectMapperFactory;
+import io.github.tisrop.annotation.ObjectMapperFactory;
 
 public class CustomObjectMapperFactory implements ObjectMapperFactory {
     @Override

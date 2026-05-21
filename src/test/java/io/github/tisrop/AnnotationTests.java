@@ -1,6 +1,6 @@
-package com.situ.tisrop;
+package io.github.tisrop;
 
-import com.situ.tisrop.annotation.JsonResource;
+import io.github.tisrop.annotation.JsonResource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 

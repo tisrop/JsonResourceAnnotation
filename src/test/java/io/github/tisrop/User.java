@@ -1,4 +1,4 @@
-package com.situ.tisrop;
+package io.github.tisrop;
 
 public class User {
     private String name;
