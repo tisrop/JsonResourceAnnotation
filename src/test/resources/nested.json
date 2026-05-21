@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "name": "nested_user",
+      "age": 30
+    }
+  }
+}

@@ -16,6 +16,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,18 +26,18 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<JsonResource> {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private final BiFunction<Class<?>, String, InputStream> inputStreamProvider;
     private JsonResource annotation;
     private String[] resources;
     private Charset charset;
     private Class<?> clazz;
+    private ObjectMapper objectMapper;
 
-    JsonArgumentsProvider() {
+    public JsonArgumentsProvider() {
         this(Class::getResourceAsStream);
     }
 
-    JsonArgumentsProvider(BiFunction<Class<?>, String, InputStream> inputStreamProvider) {
+    public JsonArgumentsProvider(BiFunction<Class<?>, String, InputStream> inputStreamProvider) {
         this.inputStreamProvider = inputStreamProvider;
     }
 
@@ -52,17 +54,40 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
                     ex
             );
         }
+        try {
+            ObjectMapperFactory factory = annotation.mapperFactory().getDeclaredConstructor().newInstance();
+            this.objectMapper = factory.create();
+        } catch (Exception e) {
+            throw new PreconditionViolationException(String.format("Failed to create ObjectMapper from factory: %s", annotation.mapperFactory().getName()), e);
+        }
     }
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-        return Arrays.stream(this.resources).map((resource) -> this.openInputStream(context, resource)).flatMap(is -> this.toStream(context, is));
+        return Arrays.stream(this.resources)
+                .map(resource -> openInputStream(context, resource))
+                .flatMap(is -> toStream(context, is));
     }
 
     private InputStream openInputStream(ExtensionContext context, String resource) {
-        Preconditions.notBlank(resource, "Classpath resource [" + resource + "] must not be null or blank");
+        Preconditions.notBlank(resource, "Resource [" + resource + "] must not be null or blank");
+
+        if (annotation.fileSystem()) {
+            try {
+                return Files.newInputStream(Paths.get(resource));
+            } catch (IOException e) {
+                throw new PreconditionViolationException(
+                        String.format("File system resource [%s] does not exist or cannot be read", resource),
+                        e
+                );
+            }
+        }
+
         Class<?> testClass = context.getRequiredTestClass();
-        return Preconditions.notNull(this.inputStreamProvider.apply(testClass, resource), () -> "Classpath resource [" + resource + "] does not exist");
+        return Preconditions.notNull(
+                this.inputStreamProvider.apply(testClass, resource),
+                () -> String.format("Classpath resource [%s] does not exist", resource)
+        );
     }
 
     public String readSource(InputStream inputStream) {
@@ -79,6 +104,11 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
         try {
             String source = readSource(inputStream);
             JsonNode root = objectMapper.readTree(source);
+
+            if (!annotation.jsonPath().isEmpty()) {
+                root = applyJsonPath(root, annotation.jsonPath());
+            }
+
             if (root.isArray()) {
                 Class<?> paramType = getSingleParameterType(context);
                 if (paramType != null && List.class.isAssignableFrom(paramType)) {
@@ -100,8 +130,47 @@ public class JsonArgumentsProvider implements ArgumentsProvider, AnnotationConsu
             Object obj = objectMapper.treeToValue(root, this.clazz);
             return Stream.of(Arguments.of(obj));
         } catch (IOException e) {
-            throw new RuntimeException("Failed to parse JSON string", e);
+            String resourceNames = Arrays.toString(this.resources);
+            throw new RuntimeException(
+                    String.format("Failed to parse JSON string from resources: %s, target type: %s",
+                            resourceNames, this.clazz.getName()),
+                    e
+            );
         }
+    }
+
+    private JsonNode applyJsonPath(JsonNode root, String jsonPath) {
+        if (jsonPath.startsWith("/")) {
+            jsonPath = jsonPath.substring(1);
+        }
+        String[] parts = jsonPath.split("/");
+        JsonNode current = root;
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            if (current.isObject() && current.has(part)) {
+                current = current.get(part);
+            } else if (current.isArray()) {
+                try {
+                    int index = Integer.parseInt(part);
+                    if (index >= 0 && index < current.size()) {
+                        current = current.get(index);
+                    } else {
+                        throw new IllegalArgumentException(
+                                String.format("JSONPath index out of bounds: %s", jsonPath)
+                        );
+                    }
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(
+                            String.format("Invalid JSONPath: %s, expecting array index", jsonPath)
+                    );
+                }
+            } else {
+                throw new IllegalArgumentException(
+                        String.format("JSONPath not found: %s at part: %s", jsonPath, part)
+                );
+            }
+        }
+        return current;
     }
 
     private Class<?> getSingleParameterType(ExtensionContext context) {
