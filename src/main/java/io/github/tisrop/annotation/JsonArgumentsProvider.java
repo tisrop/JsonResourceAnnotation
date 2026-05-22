@@ -1,4 +1,4 @@
-package com.situ.tisrop.annotation;
+package io.github.tisrop.annotation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

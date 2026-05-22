@@ -1,4 +1,4 @@
-package com.situ.tisrop.annotation;
+package io.github.tisrop.annotation;
 
 import org.apiguardian.api.API;
 import org.junit.jupiter.params.provider.ArgumentsSource;
